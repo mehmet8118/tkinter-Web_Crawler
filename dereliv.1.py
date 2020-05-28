@@ -30,7 +30,7 @@ class Window(Tk):
         self.TOTAL_URL = set()
         self.say = 0
         self.NOT_CONTENT_URL_LIST = set()  # farklı domain'e ait siteleri tutar
-        self.USERAGENT = [agent.strip() for agent in open('PAYLOADS/useragent.txt')]
+        self.USERAGENT = [agent.strip() for agent in open('useragent.txt')]
         self.Random_Useragent = random.choice(self.USERAGENT)
 
     def Request(self):
