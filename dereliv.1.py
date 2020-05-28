@@ -3,11 +3,11 @@ __author__ = 'mehmet şerif paşa'
 
 from tkinter import *
 from tkinter import PhotoImage
-from urllib.parse import unquote
 import re
 import socket
 import random
 import requests
+from bs4 import BeautifulSoup
 
 try:
     from googlesearch import search
@@ -96,17 +96,32 @@ class Window(Tk):
         else:
             self.host_strip_control = str(self.host_strip)
 
-    def Google_Search_Path_Crawler(self):  # Google yardımıyla ek olarak url aldık
-        query = "site:" + str(self.host_strip)
-
-        for j in search(query, num=50, stop=50, pause=2):
-            self.text2.insert(END, str(j))
-            self.GOOGLE_URL_LIST.add(str(j))
-            for k in self.GOOGLE_URL_LIST:
-                self.GOOGLE_AND_CONTENT_URL_LIST_KNIT.add(k)
+    def Url_Crawler_SECTION_1(self): # sayfa içerisindeki bütün url'leri çektik
+        html_page = self.req_content
+        soup = BeautifulSoup(html_page,'html.parser')
+        links1 = re.findall('"((http|ftp)s?://.*?)"', html_page.decode('utf-8'))
+        links2 = re.findall("'((http|ftp)s?://.*?)'", html_page.decode('utf-8'))
+        if links1:
+            for t in links1:
+                if self.host_strip_control in t[0]:
+                    self.CONTENT_URL_LIST.add(t[0])
+                    self.text2.insert(END, str(t[0]) + "\n")
+                else:
+                    self.NOT_CONTENT_URL_LIST.add(t[0])
+        if links2:
+            for t2 in links2:
+                if self.host_strip_control in t2[0]:
+                    self.CONTENT_URL_LIST.add(t2[0])
+                    self.text2.insert(END, str(t2[0]) + "\n")
+                else:
+                    self.NOT_CONTENT_URL_LIST.add(t2[0])
+        # self.CONTENT_URL_LIST'da url'ler yer alıyor
+        # self.NOT_CONTENT_URL_LIST'da ise kaynak'da yer alan fakat aynı domaine ait olmayan URL'ler
+        for i in self.CONTENT_URL_LIST:
+            self.GOOGLE_AND_CONTENT_URL_LIST_KNIT.add(i)
 
     def Url_Crawler_SECTION_2_(self): # DİZİN AYIRMA İŞLEMİ
-        for i in self.GOOGLE_AND_CONTENT_URL_LIST_KNIT:
+        for i in self.CONTENT_URL_LIST:
             if self.host_strip_control in i.split('/')[2]: #[2] = domain
                 try:
                     if i.split('/')[3]: # Neden 12 tane derseniz en son ihtimale kadar parçalama yapmaya çalıştım. Arttırılabilir
@@ -183,14 +198,7 @@ class Window(Tk):
         for k in self.TOTAL_URL:
             self.text2.insert(END, str(k) +"\n")
 
-    def archive_web(self):
-        url = "http://web.archive.org/cdx/search/cdx?url=*."+ str(self.host_strip) +"/*&output=text&fl=original&collapse=urlkey"
-        archive_req = requests.get(url)
-        for k in archive_req:
-            urll = k.decode('utf-8')
-            self.text2.insert(END, unquote(urll) +"\n")
-
-    def gövde(self):
+    def govde(self):
 
         self.label_ip = Label(
             text = "İp Adresi: ",
@@ -213,13 +221,13 @@ class Window(Tk):
 
         self.buton1 = Button(
             text="Tara",
-            command = lambda:[self.Request(), self.Host_Look(), self.Ip_Look(), self.Port_Scanner(),
-                              self.Host_Strip_www(),self.Url_Crawler_SECTION_2_,
-                              self.Url_Crawler_SECTION_3(),
-                              self.List_Pars(), self.Total(), self.archive_web()],
+            command = lambda:[self.Request(), self.Host_Look(), self.Ip_Look(),
+                              self.Port_Scanner(), self.Host_Strip_www(),
+                              self.Url_Crawler_SECTION_1(), self.Url_Crawler_SECTION_2_(), self.Url_Crawler_SECTION_3(),
+                              self.List_Pars(), self.Total()],
             bg="red")
 
-        self.text_yazı = Label(
+        self.text_yazi = Label(
             text="Headers",
             font=('open sans', 15, "bold"),
             justify="center")
@@ -233,7 +241,7 @@ class Window(Tk):
             bd=2  # çerçeve genişliği
         )
 
-        self.text_yazı2 = Label(
+        self.text_yazi2 = Label(
             text="Url List",
             font=('open sans', 15, "bold"),
             justify="center")
@@ -244,10 +252,10 @@ class Window(Tk):
             width=50,
             font=("open sans", 15, "bold"),
             relief = SUNKEN, #çerçeve
-            bd = 2# çerçeve genişliği
+            bd = 2,# çerçeve genişliği
         )
 
-        self.text_yazı3 = Label(
+        self.text_yazi3 = Label(
             text="Port Scanner",
             font=('open sans', 15, "bold")
         )
@@ -268,26 +276,25 @@ class Window(Tk):
         self.veri_al.pack()
         self.buton1.pack()
 
-        self.text_yazı.pack()
-        self.text_yazı.place(x=200, y=130) #pozisyonlarını ayarlıyoruz
+        self.text_yazi.pack()
+        self.text_yazi.place(x=200, y=130) #pozisyonlarını ayarlıyoruz
         self.text1.pack()
         self.text1.place(x=0, y=150)
 
-        self.text_yazı2.pack()
-        self.text_yazı2.place(x=800, y=130)
+        self.text_yazi2.pack()
+        self.text_yazi2.place(x=800, y=130)
         self.text2.place(x=520, y=150)  # 150 yukardan 200 soldan
 
         self.text3.pack()
         self.text3.place(x=0, y=370)
-        self.text_yazı3.place(x=200, y=350)
+        self.text_yazi3.place(x=200, y=350)
 
 
 
 if __name__ == "__main__":
     w = Window()
-    w.gövde()
+    w.govde()
     w.mainloop()
-
 
 
 
