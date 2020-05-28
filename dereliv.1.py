@@ -30,7 +30,7 @@ class Window(Tk):
         self.TOTAL_URL = set()
         self.say = 0
         self.NOT_CONTENT_URL_LIST = set()  # farklı domain'e ait siteleri tutar
-        self.USERAGENT = [agent.strip() for agent in open('useragent.txt')]
+        self.USERAGENT = [agent.strip() for agent in open('PAYLOADS/useragent.txt')]
         self.Random_Useragent = random.choice(self.USERAGENT)
 
     def Request(self):
@@ -97,10 +97,10 @@ class Window(Tk):
             self.host_strip_control = str(self.host_strip)
 
     def Url_Crawler_SECTION_1(self): # sayfa içerisindeki bütün url'leri çektik
-        html_page = self.req_content
+        html_page = self.req_text
         soup = BeautifulSoup(html_page,'html.parser')
-        links1 = re.findall('"((http|ftp)s?://.*?)"', html_page.decode('utf-8'))
-        links2 = re.findall("'((http|ftp)s?://.*?)'", html_page.decode('utf-8'))
+        links1 = re.findall('"((http|ftp)s?://.*?)"', html_page)
+        links2 = re.findall("'((http|ftp)s?://.*?)'", html_page)
         if links1:
             for t in links1:
                 if self.host_strip_control in t[0]:
@@ -162,27 +162,26 @@ class Window(Tk):
         Parçalama yaptığımız URl'lere tekrar istek yollayarak yeni urller elde edicez
         """
         path = [path.strip() for path in self.DIRECTORY_2]
-        def Section_3_Crawl():
-            self.say += 1
-            try:
-                for i in self.DIRECTORY_2:
-                    self.Section_3_Request = requests.get(self.host + '/' + i , timeout=2, headers= {'User-Agent':self.Random_Useragent})
-                    self.Section_3_Content = self.Section_3_Request.content
-                    links = re.findall('"((http|ftp)s?://.*?)"', self.Section_3_Content)
-                    for t in links:
-                        if self.host_strip_control in t[0]:
-                            self.TOTAL_URL.add(t[0])
-                            self.text2.insert(END, str(t[0]) +"\n")
-                        else:
-                            self.NOT_CONTENT_URL_LIST.add(t[0])
-            except requests.exceptions.ConnectionError:
-                pass
-            except requests.exceptions.Timeout:
-                pass
-            except requests.exceptions.SSLError:
-                pass
-            except:
-                pass
+        self.say += 1
+        try:
+            for i in self.DIRECTORY_2:
+                self.Section_3_Request = requests.get(self.host + '/' + i , timeout=2, headers= {'User-Agent':self.Random_Useragent})
+                self.Section_3_Content = self.Section_3_Request.content
+                links = re.findall('"((http|ftp)s?://.*?)"', self.Section_3_Content)
+                for t in links:
+                    if self.host_strip_control in t[0]:
+                        self.TOTAL_URL.add(t[0])
+                        self.text2.insert(END, str(t[0]) +"\n")
+                    else:
+                        self.NOT_CONTENT_URL_LIST.add(t[0])
+        except requests.exceptions.ConnectionError:
+            pass
+        except requests.exceptions.Timeout:
+            pass
+        except requests.exceptions.SSLError:
+            pass
+        except:
+            pass
 
     def List_Pars(self): #Topladığımız bütün linkleri birleştiriyoruz
         for g in self.DIRECTORY_2:
@@ -194,9 +193,6 @@ class Window(Tk):
         for t in self.GOOGLE_URL_LIST:
             self.TOTAL_URL.add(str(t))
 
-    def Total(self):
-        for k in self.TOTAL_URL:
-            self.text2.insert(END, str(k) +"\n")
 
     def govde(self):
 
@@ -224,7 +220,7 @@ class Window(Tk):
             command = lambda:[self.Request(), self.Host_Look(), self.Ip_Look(),
                               self.Port_Scanner(), self.Host_Strip_www(),
                               self.Url_Crawler_SECTION_1(), self.Url_Crawler_SECTION_2_(), self.Url_Crawler_SECTION_3(),
-                              self.List_Pars(), self.Total()],
+                              self.List_Pars()],
             bg="red")
 
         self.text_yazi = Label(
